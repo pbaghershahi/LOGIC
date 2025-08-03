@@ -1,0 +1,237 @@
+2025-06-28,03:45:22 [INFO] Logging to: [PosixPath('/workspace/LLM_GNN_explanation/log/general/global_logic_None_2025-06-28-03-45-22.log'), PosixPath('/workspace/LLM_GNN_explanation/log/evaluation/eval_logic_None_2025-06-28-03-45-22.log')]
+2025-06-28,03:45:22 [INFO] Reading config from: ./config/amazon_products.yaml
+2025-06-28,03:45:22 [INFO] Namespace(method='logic', llm_model='meta-llama/Meta-Llama-3.1-8B-Instruct', download_nltk_stopwords=False, dataset='products', pretrain=False, use_bow=True, gnn_dataloader_num_workers=0, dataset_sample_size=1000, dataset_random_sampling=False, pretrained_gnn_path=[], processed_data_path=[], pretrained_projector_path=[], gnn_with_last_dropout=False, gnn_task_mode='node', gnn_weight_decay=0.0005, gnn_type='gcn', gnn_decoder_type='linear', gnn_num_hid_layers=3, gnn_num_epochs=100, gnn_eval_step=10, gnn_h_dim=64, gnn_lr=0.01, gnn_step_size=50, gnn_gamma=0.5, gnn_batch_size=64, gnn_dropout=0.4, projector_lr=0.0005, projector_step_size=50, projector_weight_decay=0.0, projector_gamma=1.0, projector_num_epochs=200, contrastive_temperature=0.2, projector_objective_beta=0.05, not_verbose=False, write_new_output=False, total_iters=1, seed=[], config_from_file='./config/amazon_products.yaml', log_dir=None, llm_batch_size=32, max_num_eval_nodes=200, max_num_frequent_words=2000, neighborhood_max_hops=2, llm_node_batch_size=5, save_generation_every=10, num_tokens=5, train_test_split=[0.6, 0.3], normal_mode='na')
+2025-06-28,03:45:22 [INFO] Seeds: [4978]
+2025-06-28,03:45:22 [INFO] Saving outputs to:
+/workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/
+2025-06-28,03:45:22 [INFO] ####################################################################################################
+2025-06-28,03:45:22 [INFO] Started round 1/1 of experiments!
+2025-06-28,03:45:22 [INFO] Pretraining gcn on products started for 100 epochs
+2025-06-28,03:45:22 [INFO] GNN Before Pretraining: -- Test Loss: 3.875 -- Test ACC: 0.000 -- Test F1-score: 0.000
+2025-06-28,03:45:23 [INFO] Epoch: 10/100 -- Train Loss: 0.690 -- Validation Loss: 1.104 -- Validation ACC: 0.810 -- Validation F1: 0.641
+2025-06-28,03:45:23 [INFO] Epoch: 20/100 -- Train Loss: 0.372 -- Validation Loss: 1.139 -- Validation ACC: 0.830 -- Validation F1: 0.677
+2025-06-28,03:45:24 [INFO] Epoch: 30/100 -- Train Loss: 0.287 -- Validation Loss: 1.188 -- Validation ACC: 0.800 -- Validation F1: 0.635
+2025-06-28,03:45:24 [INFO] Epoch: 40/100 -- Train Loss: 0.082 -- Validation Loss: 1.359 -- Validation ACC: 0.810 -- Validation F1: 0.621
+2025-06-28,03:45:25 [INFO] Epoch: 50/100 -- Train Loss: 0.083 -- Validation Loss: 1.411 -- Validation ACC: 0.800 -- Validation F1: 0.613
+2025-06-28,03:45:25 [INFO] Epoch: 60/100 -- Train Loss: 0.026 -- Validation Loss: 1.661 -- Validation ACC: 0.810 -- Validation F1: 0.637
+2025-06-28,03:45:25 [INFO] Epoch: 70/100 -- Train Loss: 0.120 -- Validation Loss: 1.773 -- Validation ACC: 0.810 -- Validation F1: 0.642
+2025-06-28,03:45:26 [INFO] Epoch: 80/100 -- Train Loss: 0.220 -- Validation Loss: 1.565 -- Validation ACC: 0.820 -- Validation F1: 0.635
+2025-06-28,03:45:26 [INFO] Epoch: 90/100 -- Train Loss: 0.380 -- Validation Loss: 1.739 -- Validation ACC: 0.790 -- Validation F1: 0.578
+2025-06-28,03:45:27 [INFO] GNN After Pretraining: -- Train Loss: 0.353 -- Test Loss: 1.720 -- Test ACC: 0.773 -- Test F1: 0.516
+2025-06-28,03:45:27 [INFO] Model saved to: /workspace/LLM_GNN_explanation/pretrained/products-meta-llama/Meta-Llama-3.1-8B-Instruct/gcn.pth
+2025-06-28,03:45:27 [INFO] Data and GNN preds saved to /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/data.pth
+2025-06-28,03:45:46 [INFO] Step 999: Total Loss = 6.5016 | Contrastive = 6.8438 | Context = -0.0009
+2025-06-28,03:45:46 [INFO] Step 999: Total Loss = 6.1677 | Contrastive = 6.4972 | Context = -0.0930
+2025-06-28,03:45:46 [INFO] Step 999: Total Loss = 6.1652 | Contrastive = 6.4958 | Context = -0.1154
+2025-06-28,03:45:47 [INFO] Step 999: Total Loss = 6.1633 | Contrastive = 6.4952 | Context = -0.1444
+2025-06-28,03:45:47 [INFO] Model saved to: /workspace/LLM_GNN_explanation/pretrained/products-meta-llama/Meta-Llama-3.1-8B-Instruct/projector.pth
+2025-06-28,03:45:47 [INFO] Running for node 0/200
+2025-06-28,03:45:51 [INFO] Running for node 1/200
+2025-06-28,03:48:35 [INFO] Running for node 2/200
+2025-06-28,03:49:29 [INFO] Running for node 3/200
+2025-06-28,03:51:07 [INFO] Running for node 4/200
+2025-06-28,03:51:46 [INFO] Running for node 5/200
+2025-06-28,03:53:37 [INFO] Running for node 6/200
+2025-06-28,03:53:49 [INFO] Running for node 7/200
+2025-06-28,03:55:09 [INFO] Running for node 8/200
+2025-06-28,03:55:12 [INFO] Running for node 9/200
+2025-06-28,03:55:54 [INFO] Running for node 10/200
+2025-06-28,03:57:28 [INFO] Running for node 11/200
+2025-06-28,03:58:23 [INFO] Running for node 12/200
+2025-06-28,04:00:26 [INFO] Running for node 13/200
+2025-06-28,04:01:21 [INFO] Running for node 14/200
+2025-06-28,04:01:23 [INFO] Running for node 15/200
+2025-06-28,04:03:14 [INFO] Running for node 16/200
+2025-06-28,04:04:12 [INFO] Running for node 17/200
+2025-06-28,04:06:57 [INFO] Running for node 18/200
+2025-06-28,04:08:19 [INFO] Running for node 19/200
+2025-06-28,04:08:20 [INFO] Outputs saved to: /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/explanations.pth
+2025-06-28,04:08:20 [INFO] Running for node 20/200
+2025-06-28,04:10:10 [INFO] Running for node 21/200
+2025-06-28,04:10:22 [INFO] Running for node 22/200
+2025-06-28,04:11:18 [INFO] Running for node 23/200
+2025-06-28,04:12:17 [INFO] Running for node 24/200
+2025-06-28,04:13:46 [INFO] Running for node 25/200
+2025-06-28,04:14:42 [INFO] Running for node 26/200
+2025-06-28,04:15:37 [INFO] Running for node 27/200
+2025-06-28,04:16:32 [INFO] Running for node 28/200
+2025-06-28,04:16:35 [INFO] Running for node 29/200
+2025-06-28,04:18:46 [INFO] Running for node 30/200
+2025-06-28,04:21:31 [INFO] Running for node 31/200
+2025-06-28,04:21:31 [INFO] Running for node 32/200
+2025-06-28,04:21:34 [INFO] Running for node 33/200
+2025-06-28,04:21:39 [INFO] Running for node 34/200
+2025-06-28,04:21:43 [INFO] Running for node 35/200
+2025-06-28,04:22:39 [INFO] Running for node 36/200
+2025-06-28,04:23:34 [INFO] Running for node 37/200
+2025-06-28,04:26:19 [INFO] Running for node 38/200
+2025-06-28,04:27:16 [INFO] Running for node 39/200
+2025-06-28,04:28:10 [INFO] Outputs saved to: /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/explanations.pth
+2025-06-28,04:28:10 [INFO] Running for node 40/200
+2025-06-28,04:30:28 [INFO] Running for node 41/200
+2025-06-28,04:30:40 [INFO] Running for node 42/200
+2025-06-28,04:30:41 [INFO] Running for node 43/200
+2025-06-28,04:30:41 [INFO] Running for node 44/200
+2025-06-28,04:33:26 [INFO] Running for node 45/200
+2025-06-28,04:36:11 [INFO] Running for node 46/200
+2025-06-28,04:36:22 [INFO] Running for node 47/200
+2025-06-28,04:37:54 [INFO] Running for node 48/200
+2025-06-28,04:40:39 [INFO] Running for node 49/200
+2025-06-28,04:40:53 [INFO] Running for node 50/200
+2025-06-28,04:40:54 [INFO] Running for node 51/200
+2025-06-28,04:40:54 [INFO] Running for node 52/200
+2025-06-28,04:41:52 [INFO] Running for node 53/200
+2025-06-28,04:41:59 [INFO] Running for node 54/200
+2025-06-28,04:42:21 [INFO] Running for node 55/200
+2025-06-28,04:42:29 [INFO] Running for node 56/200
+2025-06-28,04:42:35 [INFO] Running for node 57/200
+2025-06-28,04:43:31 [INFO] Running for node 58/200
+2025-06-28,04:44:26 [INFO] Running for node 59/200
+2025-06-28,04:47:11 [INFO] Outputs saved to: /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/explanations.pth
+2025-06-28,04:47:11 [INFO] Running for node 60/200
+2025-06-28,04:48:07 [INFO] Running for node 61/200
+2025-06-28,04:50:52 [INFO] Running for node 62/200
+2025-06-28,04:51:20 [INFO] Running for node 63/200
+2025-06-28,04:52:43 [INFO] Running for node 64/200
+2025-06-28,04:55:28 [INFO] Running for node 65/200
+2025-06-28,04:56:39 [INFO] Running for node 66/200
+2025-06-28,04:57:46 [INFO] Running for node 67/200
+2025-06-28,04:58:40 [INFO] Running for node 68/200
+2025-06-28,04:59:41 [INFO] Running for node 69/200
+2025-06-28,05:02:25 [INFO] Running for node 70/200
+2025-06-28,05:05:10 [INFO] Running for node 71/200
+2025-06-28,05:06:12 [INFO] Running for node 72/200
+2025-06-28,05:06:47 [INFO] Running for node 73/200
+2025-06-28,05:07:00 [INFO] Running for node 74/200
+2025-06-28,05:09:45 [INFO] Running for node 75/200
+2025-06-28,05:12:30 [INFO] Running for node 76/200
+2025-06-28,05:12:47 [INFO] Running for node 77/200
+2025-06-28,05:12:47 [INFO] Running for node 78/200
+2025-06-28,05:12:47 [INFO] Running for node 79/200
+2025-06-28,05:12:47 [INFO] Outputs saved to: /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/explanations.pth
+2025-06-28,05:12:47 [INFO] Running for node 80/200
+2025-06-28,05:12:47 [INFO] Running for node 81/200
+2025-06-28,05:12:47 [INFO] Running for node 82/200
+2025-06-28,05:12:47 [INFO] Running for node 83/200
+2025-06-28,05:12:47 [INFO] Running for node 84/200
+2025-06-28,05:12:47 [INFO] Running for node 85/200
+2025-06-28,05:12:47 [INFO] Running for node 86/200
+2025-06-28,05:12:47 [INFO] Running for node 87/200
+2025-06-28,05:12:47 [INFO] Running for node 88/200
+2025-06-28,05:12:47 [INFO] Running for node 89/200
+2025-06-28,05:12:47 [INFO] Running for node 90/200
+2025-06-28,05:13:42 [INFO] Running for node 91/200
+2025-06-28,05:13:42 [INFO] Running for node 92/200
+2025-06-28,05:13:42 [INFO] Running for node 93/200
+2025-06-28,05:13:42 [INFO] Running for node 94/200
+2025-06-28,05:13:42 [INFO] Running for node 95/200
+2025-06-28,05:13:42 [INFO] Running for node 96/200
+2025-06-28,05:13:42 [INFO] Running for node 97/200
+2025-06-28,05:13:42 [INFO] Running for node 98/200
+2025-06-28,05:13:42 [INFO] Running for node 99/200
+2025-06-28,05:13:42 [INFO] Outputs saved to: /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/explanations.pth
+2025-06-28,05:13:42 [INFO] Running for node 100/200
+2025-06-28,05:13:42 [INFO] Running for node 101/200
+2025-06-28,05:13:42 [INFO] Running for node 102/200
+2025-06-28,05:13:42 [INFO] Running for node 103/200
+2025-06-28,05:13:42 [INFO] Running for node 104/200
+2025-06-28,05:13:42 [INFO] Running for node 105/200
+2025-06-28,05:13:42 [INFO] Running for node 106/200
+2025-06-28,05:13:42 [INFO] Running for node 107/200
+2025-06-28,05:13:42 [INFO] Running for node 108/200
+2025-06-28,05:13:42 [INFO] Running for node 109/200
+2025-06-28,05:13:42 [INFO] Running for node 110/200
+2025-06-28,05:13:42 [INFO] Running for node 111/200
+2025-06-28,05:13:42 [INFO] Running for node 112/200
+2025-06-28,05:13:42 [INFO] Running for node 113/200
+2025-06-28,05:13:42 [INFO] Running for node 114/200
+2025-06-28,05:13:42 [INFO] Running for node 115/200
+2025-06-28,05:13:42 [INFO] Running for node 116/200
+2025-06-28,05:13:42 [INFO] Running for node 117/200
+2025-06-28,05:13:42 [INFO] Running for node 118/200
+2025-06-28,05:13:42 [INFO] Running for node 119/200
+2025-06-28,05:13:42 [INFO] Outputs saved to: /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/explanations.pth
+2025-06-28,05:13:42 [INFO] Running for node 120/200
+2025-06-28,05:13:42 [INFO] Running for node 121/200
+2025-06-28,05:13:42 [INFO] Running for node 122/200
+2025-06-28,05:13:42 [INFO] Running for node 123/200
+2025-06-28,05:13:42 [INFO] Running for node 124/200
+2025-06-28,05:13:42 [INFO] Running for node 125/200
+2025-06-28,05:13:42 [INFO] Running for node 126/200
+2025-06-28,05:13:42 [INFO] Running for node 127/200
+2025-06-28,05:13:42 [INFO] Running for node 128/200
+2025-06-28,05:14:37 [INFO] Running for node 129/200
+2025-06-28,05:15:32 [INFO] Running for node 130/200
+2025-06-28,05:16:12 [INFO] Running for node 131/200
+2025-06-28,05:17:06 [INFO] Running for node 132/200
+2025-06-28,05:17:15 [INFO] Running for node 133/200
+2025-06-28,05:18:10 [INFO] Running for node 134/200
+2025-06-28,05:19:05 [INFO] Running for node 135/200
+2025-06-28,05:20:00 [INFO] Running for node 136/200
+2025-06-28,05:20:55 [INFO] Running for node 137/200
+2025-06-28,05:20:55 [INFO] Running for node 138/200
+2025-06-28,05:20:58 [INFO] Running for node 139/200
+2025-06-28,05:21:55 [INFO] Outputs saved to: /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/explanations.pth
+2025-06-28,05:21:55 [INFO] Running for node 140/200
+2025-06-28,05:22:02 [INFO] Running for node 141/200
+2025-06-28,05:22:14 [INFO] Running for node 142/200
+2025-06-28,05:22:16 [INFO] Running for node 143/200
+2025-06-28,05:22:36 [INFO] Running for node 144/200
+2025-06-28,05:22:45 [INFO] Running for node 145/200
+2025-06-28,05:23:05 [INFO] Running for node 146/200
+2025-06-28,05:23:12 [INFO] Running for node 147/200
+2025-06-28,05:23:30 [INFO] Running for node 148/200
+2025-06-28,05:23:48 [INFO] Running for node 149/200
+2025-06-28,05:24:43 [INFO] Running for node 150/200
+2025-06-28,05:25:37 [INFO] Running for node 151/200
+2025-06-28,05:26:32 [INFO] Running for node 152/200
+2025-06-28,05:26:38 [INFO] Running for node 153/200
+2025-06-28,05:27:07 [INFO] Running for node 154/200
+2025-06-28,05:27:33 [INFO] Running for node 155/200
+2025-06-28,05:27:51 [INFO] Running for node 156/200
+2025-06-28,05:28:05 [INFO] Running for node 157/200
+2025-06-28,05:28:36 [INFO] Running for node 158/200
+2025-06-28,05:29:31 [INFO] Running for node 159/200
+2025-06-28,05:30:25 [INFO] Outputs saved to: /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/explanations.pth
+2025-06-28,05:30:25 [INFO] Running for node 160/200
+2025-06-28,05:30:51 [INFO] Running for node 161/200
+2025-06-28,05:31:02 [INFO] Running for node 162/200
+2025-06-28,05:31:12 [INFO] Running for node 163/200
+2025-06-28,05:31:25 [INFO] Running for node 164/200
+2025-06-28,05:31:38 [INFO] Running for node 165/200
+2025-06-28,05:31:57 [INFO] Running for node 166/200
+2025-06-28,05:31:59 [INFO] Running for node 167/200
+2025-06-28,05:32:17 [INFO] Running for node 168/200
+2025-06-28,05:32:35 [INFO] Running for node 169/200
+2025-06-28,05:33:03 [INFO] Running for node 170/200
+2025-06-28,05:33:16 [INFO] Running for node 171/200
+2025-06-28,05:34:10 [INFO] Running for node 172/200
+2025-06-28,05:34:23 [INFO] Running for node 173/200
+2025-06-28,05:35:18 [INFO] Running for node 174/200
+2025-06-28,05:35:26 [INFO] Running for node 175/200
+2025-06-28,05:36:21 [INFO] Running for node 176/200
+2025-06-28,05:36:31 [INFO] Running for node 177/200
+2025-06-28,05:36:43 [INFO] Running for node 178/200
+2025-06-28,05:37:38 [INFO] Running for node 179/200
+2025-06-28,05:38:32 [INFO] Outputs saved to: /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/explanations.pth
+2025-06-28,05:38:32 [INFO] Running for node 180/200
+2025-06-28,05:38:57 [INFO] Running for node 181/200
+2025-06-28,05:39:51 [INFO] Running for node 182/200
+2025-06-28,05:40:45 [INFO] Running for node 183/200
+2025-06-28,05:41:14 [INFO] Running for node 184/200
+2025-06-28,05:41:23 [INFO] Running for node 185/200
+2025-06-28,05:42:17 [INFO] Running for node 186/200
+2025-06-28,05:42:23 [INFO] Running for node 187/200
+2025-06-28,05:42:26 [INFO] Running for node 188/200
+2025-06-28,05:42:33 [INFO] Running for node 189/200
+2025-06-28,05:43:27 [INFO] Running for node 190/200
+2025-06-28,05:45:15 [INFO] Running for node 191/200
+2025-06-28,05:45:27 [INFO] Running for node 192/200
+2025-06-28,05:45:35 [INFO] Running for node 193/200
+2025-06-28,05:46:08 [INFO] Running for node 194/200
+2025-06-28,05:47:03 [INFO] Running for node 195/200
+2025-06-28,05:48:51 [INFO] Running for node 196/200
+2025-06-28,05:49:55 [INFO] Running for node 197/200
+2025-06-28,05:50:13 [INFO] Running for node 198/200
+2025-06-28,05:51:07 [INFO] Running for node 199/200
+2025-06-28,05:52:32 [INFO] Outputs saved to: /workspace/LLM_GNN_explanation/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct/explanations.pth
