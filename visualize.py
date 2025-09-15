@@ -13,12 +13,12 @@ import ipdb
 
 def draw_graph_on_axis(ax, data_obj, num_classes, title):
     """Draws a single explanation graph on a given Matplotlib axis."""
-    if not hasattr(data_obj, 'original_nodes'):
-        data_obj.original_nodes = torch.arange(data_obj.num_nodes)
+    if not hasattr(data_obj, 'org_nid'):
+        data_obj.org_nid = torch.arange(data_obj.num_nodes)
 
     g = to_networkx(data_obj, to_undirected=True)
     
-    node_labels_dict = {i: str(original_id.item()) for i, original_id in enumerate(data_obj.original_nodes)}
+    node_labels_dict = {i: str(original_id.item()) for i, original_id in enumerate(data_obj.org_nid)}
     node_class_colors = [data.item() for data in data_obj.y]
     cmap = plt.get_cmap('viridis', num_classes)
     
@@ -48,11 +48,10 @@ def save_side_by_side_visualization(llm_data_obj, gnn_data_obj, num_classes, out
 
     fig, axes = plt.subplots(1, 2, figsize=(24, 12))
     
-    # ipdb.set_trace()
     draw_graph_on_axis(axes[0], llm_data_obj, num_classes, "LLM-based Explanation")
     draw_graph_on_axis(axes[1], gnn_data_obj, num_classes, "GNNExplainer Explanation")
     
-    target_node_id = llm_data_obj.original_nodes[0].item()
+    target_node_id = llm_data_obj.org_nid[0].item()
     fig.suptitle(f"Comparison for Target Node {target_node_id}", fontsize=20)
     
     filename = os.path.join(output_dir, f"comparison_for_node_{target_node_id}.pdf")
@@ -70,7 +69,7 @@ def parse_explanation(explanation_text, neighbors_in_dict, target_node_id):
     return {'supporting': supporting_neighbors, 'unsupporting': unsupporting_neighbors}
 
 
-def process_and_create_subgraphs(file_path, main_graph_edge_index, main_graph_node_labels):
+def process_and_create_subgraphs(file_path, main_graph_edge_index, main_graph_node_labels, main_graph_node_raw_text):
     try:
         with open(file_path, 'rb') as f:
             explanation_data = pickle.load(f)
@@ -93,6 +92,8 @@ def process_and_create_subgraphs(file_path, main_graph_edge_index, main_graph_no
                 all_unsupporters.extend(result['unsupporting'])
         unique_supporters = sorted(list(set(all_supporters)))
         if unique_supporters:
+            final_explanations[target_node] = {}
+            final_explanations[target_node]["raw_texts"] = {}
             valid_supporters = [i for i in unique_supporters if i < num_nodes_in_graph]
             unique_unsupporters = sorted(list(set(all_unsupporters) - set(unique_supporters)))
             valid_unsupporters = [i for i in unique_unsupporters if i < num_nodes_in_graph]
@@ -102,7 +103,7 @@ def process_and_create_subgraphs(file_path, main_graph_edge_index, main_graph_no
                 entry['explanation'] for entry in dict_list 
                 if "Support:" in entry['explanation'] or "Support :" in entry['explanation']
             ])
-            final_explanations[target_node] = combined_text
+            final_explanations[target_node]["explanation"] = combined_text
             subset_nodes = torch.tensor([target_node] + valid_supporters + valid_unsupporters, dtype=torch.long)
             node_type = torch.ones(len(subset_nodes), dtype=torch.long)
             node_type[0] = 0
@@ -110,9 +111,12 @@ def process_and_create_subgraphs(file_path, main_graph_edge_index, main_graph_no
             node_type[unsupporter_start_index:] = 2
             sub_edge_index, _ = subgraph(subset_nodes, main_graph_edge_index, relabel_nodes=True)
             subgraph_node_labels = main_graph_node_labels[subset_nodes]
+            final_explanations[target_node]["raw_texts"] = {
+                n_idx.item(): main_graph_node_raw_text[n_idx.item()] for n_idx in subset_nodes
+            }
             data_obj = Data(
                 edge_index=sub_edge_index, num_nodes=len(subset_nodes),
-                y=subgraph_node_labels, original_nodes=subset_nodes,
+                y=subgraph_node_labels, org_nid=subset_nodes,
                 node_type=node_type
             )
             subgraph_list.append(data_obj)
@@ -124,16 +128,18 @@ if __name__ == '__main__':
     dataset = torch.load(processed_data_paths)
     main_edge_index = dataset["dataset"]._data.edge_index
     main_labels = dataset["dataset"]._data.y
+    main_raw_text = dataset["dataset"]._data.raw_text
     num_classes = len(torch.unique(main_labels))
 
     llm_explanations_path = '/workspace/LOGIC/output/gcn/explanations.pth'
     final_llm_subgraphs, filtered_explanations = process_and_create_subgraphs(
         llm_explanations_path, 
         main_edge_index, 
-        main_labels
+        main_labels,
+        main_raw_text
     )
 
-    gnn_explainer_path = "/workspace/LOGIC/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct-2025-09-15-14-05-08/GNNExplainer_explanations.pt"
+    gnn_explainer_path = "/workspace/LOGIC/output/products-meta-llama/Meta-Llama-3.1-8B-Instruct-2025-09-15-19-17-12/GNNExplainer_explanations.pt"
     gnn_explainer_subgraphs = torch.load(gnn_explainer_path)
 
     if final_llm_subgraphs:
@@ -141,7 +147,7 @@ if __name__ == '__main__':
         print(f"Saving {len(final_llm_subgraphs)} side-by-side visualizations...")
 
         for llm_data_obj in final_llm_subgraphs:
-            target_node_id = llm_data_obj.original_nodes[0].item()
+            target_node_id = llm_data_obj.org_nid[0].item()
             
             if target_node_id < len(gnn_explainer_subgraphs):
                 gnn_data_obj = gnn_explainer_subgraphs[target_node_id]

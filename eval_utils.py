@@ -263,13 +263,12 @@ def generate_exp_by_llm(
             neighbor_batch = selected_neighbors[i:i + eval_config["llm_node_batch_size"]]
 
             if generate_by == "embedding":
-
+                
                 full_embeds = build_inputs_embeds_vanilla_eos(
                     embed_func, tokenizer, gnn_embeds, gnn_preds,
                     node_idx, neighbor_batch, dataset, with_chat_template
                 )
 
-                # ipdb.set_trace()
                 attention_mask = torch.ones(full_embeds.shape[:2], dtype=torch.long, device=full_embeds.device)
                 max_safe_new_tokens = eval_config["max_position_embeddings"] - full_embeds.shape[1]
 
@@ -399,6 +398,7 @@ def eval_llm_explanations(
     
     all_fidelities = []
     all_sizes = []
+    exp_graphs = []
     for i in range(num_eval_samples):
         graph = nx.ego_graph(G, i, radius=2)
         a, b, c = explanations[i]
@@ -415,9 +415,19 @@ def eval_llm_explanations(
             
         x_sub = dataset._data.x[subset]
         x_pred = gnn_preds[subset]
+
         gnn.eval()
+        exp_graph = Data(
+            x=x_sub, 
+            edge_index=d, 
+            y=dataset._data.y[subset],
+            org_nid=subset,
+            raw_text=[dataset._data.raw_text[n_idx.item()] for n_idx in subset]
+        )
+        exp_graphs.append(exp_graph)
+
         with torch.no_grad():
-            out, _ = gnn(batch = Data(x=x_sub, edge_index=d))
+            out, _ = gnn(batch = exp_graph)
             out = out.argmax(dim=-1)
             all_fidelities.append(out[0] == x_pred[0])
     
@@ -490,7 +500,13 @@ def eval_gnnexplainer_explanations(
         x_pred = gnn_preds[subset]
 
         gnn.eval()
-        exp_graph = Data(x=x_sub, edge_index=d, y=dataset._data.y[subset])
+        exp_graph = Data(
+            x=x_sub, 
+            edge_index=d, 
+            y=dataset._data.y[subset],
+            org_nid=subset,
+            raw_text=[dataset._data.raw_text[n_idx.item()] for n_idx in subset]
+        )
         exp_graphs.append(exp_graph)
 
         with torch.no_grad():
