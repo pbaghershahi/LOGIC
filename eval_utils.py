@@ -23,6 +23,7 @@ from model import PretrainedModel, GNNtoSoftPrompt
 from utils import *
 import ipdb
 import pickle
+from tqdm import tqdm
 
 
 global_logger = logging.getLogger("global_logger")
@@ -434,6 +435,7 @@ def eval_gnnexplainer_explanations(
     num_eval_samples = 1,
     device="cpu",
     num_explainer_epochs = 200,
+    save_to = None
 ):
 
     gnn = gnn.to(device)
@@ -455,7 +457,8 @@ def eval_gnnexplainer_explanations(
 
     all_fidelities = []
     all_sizes = []
-    for i in range(num_eval_samples):
+    exp_graphs = []
+    for i in tqdm(range(num_eval_samples)):
         graph = nx.ego_graph(G, i, radius=2)
         all_neighbors = set(graph.nodes)
 
@@ -487,13 +490,20 @@ def eval_gnnexplainer_explanations(
         x_pred = gnn_preds[subset]
 
         gnn.eval()
+        exp_graph = Data(x=x_sub, edge_index=d, y=dataset._data.y[subset])
+        exp_graphs.append(exp_graph)
+
         with torch.no_grad():
-            out, _ = gnn(batch = Data(x=x_sub, edge_index=d))
+            out, _ = gnn(batch = exp_graph)
             out = out.argmax(dim=-1)
             all_fidelities.append(out[0] == x_pred[0])
     
     all_sizes = torch.as_tensor(all_sizes, dtype=torch.float)
     all_fidelities = torch.stack(all_fidelities)
+
+    if save_to is not None:
+        torch.save(exp_graphs, save_to)
+        global_logger.info(f"Outputs saved to: {save_to}")
     
     eval_logger.info(f"Evalaution on Amazon Products: Test Fidelity: {all_fidelities.sum()/all_fidelities.size(0):.3f} -- Test Size: {all_sizes.mean():.3f}")
 

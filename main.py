@@ -352,7 +352,7 @@ def main(args):
                 eval_config = eval_config,
                 embed_func = embed_func,
                 generate_by = "embedding",
-                save_to = os.path.join(output_dir, "explanations.pth"),
+                save_to = os.path.join(output_dir, "LOGIC_explanations.pkl"),
                 save_every = 20,
                 with_chat_template = with_chat_template
             )
@@ -395,7 +395,7 @@ def main(args):
                 gnn_preds = gnn_preds,
                 eval_config = eval_config,
                 generate_by = "tokens",
-                save_to = os.path.join(output_dir, "explanations.pth"),
+                save_to = os.path.join(output_dir, "LLM_explanations.pkl"),
                 save_every = 20,
                 with_chat_template = with_chat_template
             )
@@ -436,6 +436,7 @@ def main(args):
                 gnn = gnn,
                 gnn_preds = gnn_preds,
                 num_eval_samples = args.max_num_eval_nodes,
+                save_to = os.path.join(output_dir, "GNNExplainer_explanations.pt"),
             )
 
         elif args.method == "pgexplainer":
