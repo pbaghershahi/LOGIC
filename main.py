@@ -40,7 +40,7 @@ from datetime import datetime
 from train_utils import *
 from eval_utils import *
 from utils import *
-from model import PretrainedModel, GNNtoSoftPrompt
+from model import PretrainedModel, GNNToSoftPrompt
 
 
 hugging_face_token = os.environ.get('HUGGINGFACE_TOKEN')
@@ -271,7 +271,8 @@ def main(args):
         else:
             global_logger.info(f"Reading Data and GNN preds from: {processed_data_paths[i]}")
             output_dict = torch.load(processed_data_paths[i])
-            gnn_preds, gnn_embeds = output_dict["gnn_preds"].to(device), output_dict["gnn_embeds"].to(device)        
+            dataset = output_dict["dataset"]
+            gnn_preds, gnn_embeds, gnn_logits = output_dict["gnn_preds"].to(device), output_dict["gnn_embeds"].to(device), output_dict["gnn_logits"].to(device)
 
         eval_config = dict(
             max_num_eval_nodes = args.max_num_eval_nodes,
@@ -307,7 +308,8 @@ def main(args):
             projector_config = dict(
                 gnn_h_dim = args.gnn_h_dim, 
                 num_tokens = args.num_tokens, 
-                llm_h_dim = llm.config.hidden_size 
+                llm_h_dim = llm.config.hidden_size,
+                gnn_out_dim = dataset.num_classes if args.proj_with_backward else None
             )
             optimizer_config = dict(
                 lr = args.projector_lr,
@@ -327,6 +329,7 @@ def main(args):
                     embed_func,
                     tokenizer,
                     gnn_embeds,
+                    gnn_logits,
                     projector_config,
                     optimizer_config,
                     training_config,
@@ -338,11 +341,12 @@ def main(args):
                 pretrained_proj_paths.append(p_path)
             else:
                 global_logger.info(f"Reading projector model from: {pretrained_proj_paths[i]}")
-                projector = GNNtoSoftPrompt(**projector_config).to(device)
+                projector = GNNToSoftPrompt(**projector_config).to(device)
                 load_model(projector, read_checkpoint=True, pretrained_path=pretrained_proj_paths[i])
             
             projector.eval()
-            proj_embeds = projector(gnn_embeds).to(dtype=torch.bfloat16)
+            proj_embeds, _ = projector(gnn_embeds)
+            proj_embeds = proj_embeds.to(dtype=torch.bfloat16)
 
             generated_exps = generate_exp_by_llm(
                 dataset = dataset,
@@ -511,6 +515,7 @@ if __name__ == "__main__":
     parser.add_argument("-pne", "--projector-num-epochs", type=int, help="Number of epochs for pretraining the projector")
     parser.add_argument("-ct", "--contrastive-temperature", type=float, help="contrastive learning temperature")
     parser.add_argument("-pob", "--projector-objective-beta", type=float, help="beta for gated objective")
+    parser.add_argument("-pwb", "--proj-with-backward", action='store_true')
     parser.add_argument('-nv', '--not-verbose', action='store_true')
     parser.add_argument('-wno', '--write-new-output', action='store_true')
     parser.add_argument("-tt", "--total-iters", type=int, help="Total number of trials with random initialization of datasets")

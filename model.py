@@ -165,18 +165,36 @@ class PretrainedModel(nn.Module):
 
 
 
-class GNNtoSoftPrompt(nn.Module):
-    def __init__(self, gnn_h_dim, num_tokens, llm_h_dim):
+class GNNToSoftPrompt(nn.Module):
+    def __init__(self, gnn_h_dim, num_tokens, llm_h_dim, gnn_out_dim):
         super().__init__()
+
         self.projection = nn.Sequential(
             nn.Linear(gnn_h_dim, 4 * gnn_h_dim),
             nn.ReLU(),
             nn.Linear(4 * gnn_h_dim, num_tokens * llm_h_dim)
         )
+
         self.num_tokens = num_tokens
         self.llm_h_dim = llm_h_dim
 
+        if gnn_out_dim is None:
+            self.has_backward = False
+        else:
+            self.has_backward = True
+            self.backward_proj = nn.Sequential(
+                nn.Linear(num_tokens * llm_h_dim, 2 * gnn_h_dim),
+                nn.ReLU(),
+                nn.Linear(2 * gnn_h_dim, gnn_out_dim)
+            )
+
+
     def forward(self, gnn_embedding):
-        projected = self.projection(gnn_embedding)  # (batch_size, num_tokens * llm_dim)
-        soft_prompt = projected.view(-1, self.num_tokens, self.llm_h_dim)  # (batch_size, num_tokens, llm_dim)
-        return soft_prompt
+        forward_x = self.projection(gnn_embedding)
+        soft_prompt = forward_x.view(-1, self.num_tokens, self.llm_h_dim)
+
+        gnn_logits = None
+        if self.has_backward:
+            gnn_logits = self.backward_proj(F.relu(forward_x))
+
+        return soft_prompt, gnn_logits

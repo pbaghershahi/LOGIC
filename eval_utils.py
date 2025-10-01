@@ -19,7 +19,6 @@ from torch_geometric.explain.config import ExplanationType, ModelMode, MaskType,
 from TAGE.utils import Encoder
 from TAGE.downstream import MLP, EndtoEnd, train_MLP
 from TAGE.tagexplainer import TAGExplainer, MLPExplainer, XCollector
-from model import PretrainedModel, GNNtoSoftPrompt
 from utils import *
 import ipdb
 import pickle

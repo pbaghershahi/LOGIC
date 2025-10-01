@@ -97,56 +97,6 @@ def context_loss(soft_prompts, keyword_embeddings):
 
 
 
-def contrastive_loss_self_sim(embeddings, temperature=0.5):
-    
-    soft_prompts = soft_prompts.mean(dim=1)
-    embeddings = F.normalize(embeddings, dim=-1)
-    similarity_matrix = torch.matmul(embeddings, embeddings.T)  # (batch_size, batch_size)
-
-    labels = torch.arange(embeddings.size(0)).to(embeddings.device)
-    loss = F.cross_entropy(similarity_matrix / temperature, labels)
-    return loss
-
-    
-
-def contrastive_loss(embeddings, temperature=0.5):
-    
-    soft_prompts = soft_prompts.mean(dim=1)
-    batch_size = embeddings.size(0)
-    embeddings = F.normalize(embeddings, dim=-1)
-
-    sim_matrix = torch.matmul(embeddings, embeddings.T)  # (B, B)
-    sim_matrix = sim_matrix / temperature  # Scale by temperature
-
-    # Mask self-similarity by assigning large negative value
-    logits_mask = torch.ones_like(sim_matrix, dtype=torch.bool)
-    logits_mask.fill_diagonal_(False)
-    logits = sim_matrix.masked_fill(~logits_mask, float('-inf'))
-
-    logits = logits.clamp(min=-100)
-
-    labels = torch.arange(batch_size, device=embeddings.device)
-
-    # Cross-entropy loss
-    log_probs = F.log_softmax(logits, dim=-1)
-    loss = F.nll_loss(log_probs, labels)
-    return loss
-
-
-
-def contrastive_distance_loss(soft_prompts, gnn_embeddings, temperature=0.1):
-    soft_prompts = soft_prompts.mean(dim=1)
-    soft_prompts = F.normalize(soft_prompts, dim=-1)
-    gnn_embeddings = F.normalize(gnn_embeddings, dim=-1)
-
-    soft_sim = torch.matmul(soft_prompts, soft_prompts.T) / temperature
-    gnn_sim = torch.matmul(gnn_embeddings, gnn_embeddings.T) / temperature
-
-    loss = F.mse_loss(soft_sim, gnn_sim)
-    return loss
-
-
-
 def contrastive_loss_from_gnn(soft_prompts, gnn_embeddings, temperature=0.5):
     soft_prompts = soft_prompts.mean(dim=1)
     soft_prompts = F.normalize(soft_prompts, dim=-1)
@@ -164,11 +114,24 @@ def contrastive_loss_from_gnn(soft_prompts, gnn_embeddings, temperature=0.5):
 
 
 
+def mutual_info_loss(x, y, temperature=0.5):
+    x_norm = F.normalize(x, p=2, dim=-1)
+    y_norm = F.normalize(y, p=2, dim=-1)
+
+    labels = torch.arange(x_norm.shape[0])
+
+    sim_mat = (x_norm @ y_norm.T) / temperature
+
+    return F.cross_entropy(sim_mat, labels.to(sim_mat.device))
+
+    
+
 def pretrain_projector(
     dataset,
     embed_func,
     tokenizer,
     gnn_embeds,
+    gnn_logits,
     projector_config,
     optimizer_config,
     training_config,
@@ -178,7 +141,7 @@ def pretrain_projector(
     model_dir = None, 
 ):
 
-    projector = GNNtoSoftPrompt(**projector_config)
+    projector = GNNToSoftPrompt(**projector_config)
     projector.to(gnn_embeds.device)
 
     optimizer = Adam(projector.parameters(), lr = optimizer_config["lr"], weight_decay = optimizer_config["weight_decay"])
@@ -210,17 +173,22 @@ def pretrain_projector(
     num_epochs = training_config["num_epochs"]
     for epoch in range(num_epochs):
         optimizer.zero_grad()
-        soft_prompts = projector(gnn_embeds)
+        soft_prompts, gnn_proj_logits = projector(gnn_embeds)
+
         contrastive = contrastive_loss_from_gnn(soft_prompts, gnn_embeds, temperature=training_config["temperature"])
         context = context_loss(soft_prompts, llm_emebds)
-        
-        loss = (1 - training_config["beta"]) * contrastive + training_config["beta"] * context
+
+        mi_loss = torch.tensor(0.0)
+        if gnn_proj_logits is not None:
+            mi_loss = mutual_info_loss(gnn_proj_logits, gnn_logits)
+
+        loss = 0.8 * contrastive + 0.1 * context + 0.1 * mi_loss
         loss.backward()
         optimizer.step()
         scheduler.step()
         
         if epoch % eval_step == 0:
-            logger.info(f"Step {i}: Total Loss = {loss.item():.4f} | Contrastive = {contrastive.item():.4f} | Context = {context.item():.4f}")
+            logger.info(f"Step {i}: Total Loss = {loss.item():.3f} | Contrastive = {contrastive.item():.3f} | Context = {context.item():.3f} | MI = {mi_loss.item():.3f}")
 
     if model_dir:
         model_path = os.path.join(model_dir, "projector.pth")
