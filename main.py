@@ -97,7 +97,7 @@ def main(args):
             file_args = yaml.safe_load(infile)
             args = {key:file_args[key] if (key in file_args and key not in input_args) else value for key, value in all_args.items()}
             args = argparse.Namespace(**args)
-            
+    
     arg_seeds = np.random.randint(1000, 5000, (args.total_iters,)) if len(args.seed) == 0 else args.seed
     total_iters = len(arg_seeds)
     global_logger.info(args)
@@ -261,6 +261,7 @@ def main(args):
             outdict = dict(
                 dataset = dataset,
                 gnn_embeds = gnn_embeds.detach().to("cpu"),
+                gnn_logits = gnn_scores.detach().to("cpu"),
                 gnn_preds = gnn_preds.detach().to("cpu")
             )
             path_to_saved_data = os.path.join(output_dir, "data.pth")
@@ -352,7 +353,7 @@ def main(args):
                 eval_config = eval_config,
                 embed_func = embed_func,
                 generate_by = "embedding",
-                save_to = os.path.join(output_dir, "LOGIC_explanations.pkl"),
+                save_to = os.path.join(output_dir, "LOGIC_explanations.pt"),
                 save_every = 20,
                 with_chat_template = with_chat_template
             )

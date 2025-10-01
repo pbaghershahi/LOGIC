@@ -318,9 +318,9 @@ def generate_exp_by_llm(
         generated_texts.append(node_texts)
 
         if ((node_idx + 1) % save_every == 0 or (node_idx + 1) == eval_config["max_num_eval_nodes"]) and save_to is not None:
-            with open(save_to, "wb") as f:
-                pickle.dump(generated_texts, f)
-                global_logger.info(f"Outputs saved to: {save_to}")
+
+            torch.save(generated_texts, save_to)
+            global_logger.info(f"Outputs saved to: {save_to}")
 
     return generated_texts
 
@@ -765,3 +765,72 @@ def eval_gnn_explanations(
         all_fidelities.append(np.mean(trial_fidelity))
     
     eval_logger.info(f"Evalaution: Test Fidelity: {np.mean(all_fidelities):.3f} -- Test Size: {np.mean(all_sizes):.3f}")
+
+
+
+def generic_rbf_kernel(X: torch.Tensor, Y: torch.Tensor, sigma_sq: float = 1.0, max_pairs=1000000) -> torch.Tensor:
+
+    dist_sq = torch.cdist(X, Y, p=2) ** 2
+    m, n = dist_sq.shape
+    total_pairs = m * n
+
+    if total_pairs > max_pairs:
+        sigma_sq = 1.0
+    else:
+        sigma_sq = max(dist_sq.median() + 1e-9, sigma_sq)
+
+    kernel_matrix = torch.exp(-dist_sq / (2 * sigma_sq))
+    return kernel_matrix
+
+
+    
+def mmd(set1: torch.Tensor, set2: torch.Tensor, sigma_sq=1.0, iw=None, max_size=10000):
+    """
+    Computes the Maximum Mean Discrepancy (MMD) between two sets of samples.
+
+    MMD is a distance metric between distributions. An MMD of zero means the
+    distributions are identical. This implementation uses the biased estimator
+    of MMD^2.
+
+    Args:
+        set1 (torch.Tensor): Samples from the source distribution, tensor of shape (N, D).
+        set2 (torch.Tensor): Samples from the target distribution, tensor of shape (M, D).
+        sigma_sq (float): The RBF kernel bandwidth.
+        iw (torch.Tensor): importance weights.
+
+    Returns:
+        torch.Tensor: A scalar tensor representing the MMD value.
+    """
+
+    # Ensure the tensors have the same number of feature dimensions
+    assert set1.shape[1] == set2.shape[1], \
+        f"The feature dimensions of the two sets must be the same. " \
+        f"Got {set1.shape[1]} and {set2.shape[1]}."
+
+    rng = np.random.default_rng()
+    sets = [set1, set2]
+    for i, x in enumerate(sets):
+        if x.shape[0] > max_size:
+            rand_idxs = rng.choice(x.shape[0], size=max_size, replace=False)
+            sets[i] = x[rand_idxs]
+    set1, set2 = sets
+
+    # Compute the kernel matrices for within and between sets
+    k_xx = generic_rbf_kernel(set1, set1, sigma_sq)
+    k_yy = generic_rbf_kernel(set2, set2, sigma_sq)
+    k_xy = generic_rbf_kernel(set1, set2, sigma_sq)
+
+    if iw is None:
+        # Calculate the MMD^2 statistic
+        # MMD^2 = E[k(x, x')] - 2*E[k(x, y)] + E[k(y, y')]
+        mmd_sq = k_xx.mean() - 2 * k_xy.mean() + k_yy.mean()
+    else:
+        # Calculate the MMD^2 statistic
+        # MMD^2 = E[β_iβ_jk(x_i, x_j)] - 2*E[β_ik(x_i, y_j)] + E[k(y, y')]
+        weighted_k_xx = iw[None, :] * iw[:, None] * k_xx
+        weighted_k_xy = iw[:, None] * k_xy
+        mmd_sq = weighted_k_xx.mean() - 2 * weighted_k_xy.mean() + k_yy.mean()
+
+    # The MMD value can be negative due to estimation noise with the biased
+    # estimator, so we clamp it at 0 before taking the square root.
+    return torch.sqrt(torch.clamp(mmd_sq, min=0))
