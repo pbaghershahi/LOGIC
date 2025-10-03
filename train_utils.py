@@ -182,7 +182,9 @@ def pretrain_projector(
         if gnn_proj_logits is not None:
             mi_loss = mutual_info_loss(gnn_proj_logits, gnn_logits)
 
-        loss = 0.8 * contrastive + 0.1 * context + 0.1 * mi_loss
+        loss = training_config["proj_contrastive_w"] * contrastive \
+        + training_config["proj_context_w"] * context \
+        + training_config["proj_mutualinfo_w"] * mi_loss
         loss.backward()
         optimizer.step()
         scheduler.step()

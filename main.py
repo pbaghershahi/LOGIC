@@ -320,7 +320,9 @@ def main(args):
             training_config = dict(
                 num_epochs = args.projector_num_epochs,
                 temperature = args.contrastive_temperature,
-                beta = args.projector_objective_beta
+                proj_contrastive_w = args.projector_contrastive_w,
+                proj_context_w = args.projector_context_w,
+                proj_mutualinfo_w = args.projector_mutualinfo_w
             )
 
             if len(pretrained_proj_paths) == 0:
@@ -514,7 +516,9 @@ if __name__ == "__main__":
     parser.add_argument("-pg", "--projector-gamma", type=float, help="Learning rate gamma for pretraining the projector")
     parser.add_argument("-pne", "--projector-num-epochs", type=int, help="Number of epochs for pretraining the projector")
     parser.add_argument("-ct", "--contrastive-temperature", type=float, help="contrastive learning temperature")
-    parser.add_argument("-pob", "--projector-objective-beta", type=float, help="beta for gated objective")
+    parser.add_argument("-pcrw", "--projector-contrastive-w", type=float, help="contrastive loss weights")
+    parser.add_argument("-pcew", "--projector-context-w", type=float, help="context loss weights")
+    parser.add_argument("-pmiw", "--projector-mutualinfo-w", type=float, help="mutual information loss weights")
     parser.add_argument("-pwb", "--proj-with-backward", action='store_true')
     parser.add_argument('-nv', '--not-verbose', action='store_true')
     parser.add_argument('-wno', '--write-new-output', action='store_true')
