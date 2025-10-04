@@ -256,12 +256,12 @@ def main(args):
 
         if len(processed_data_paths) == 0:
             with torch.no_grad():
-                gnn_scores, gnn_embeds = gnn(batch=dataset._data)
-                gnn_preds = gnn_scores.argmax(dim=1)
+                gnn_logits, gnn_embeds = gnn(batch=dataset._data)
+                gnn_preds = gnn_logits.argmax(dim=1)
             outdict = dict(
                 dataset = dataset,
                 gnn_embeds = gnn_embeds.detach().to("cpu"),
-                gnn_logits = gnn_scores.detach().to("cpu"),
+                gnn_logits = gnn_logits.detach().to("cpu"),
                 gnn_preds = gnn_preds.detach().to("cpu")
             )
             path_to_saved_data = os.path.join(output_dir, "data.pth")
