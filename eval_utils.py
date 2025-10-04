@@ -361,8 +361,9 @@ def eval_llm_explanations(
         with open(generated_exps_path, "rb") as f:
             generated_exps = pickle.load(f)
     
+    data = dataset._data.to(device)
+
     explanations = []
-    
     for i, batch in enumerate(generated_exps):
         support_papers = [i]
         not_support_papers = []
@@ -393,7 +394,7 @@ def eval_llm_explanations(
     
         explanations.append((support_papers, not_support_papers, hallucinate_papers))
     
-    G = to_networkx(dataset._data, to_undirected=True)
+    G = to_networkx(data, to_undirected=True)
     
     all_fidelities = []
     all_sizes = []
@@ -410,18 +411,18 @@ def eval_llm_explanations(
         all_sizes.append(len(selected_nodes))
 
         subset = torch.tensor(selected_nodes, dtype=torch.long)
-        d, e = subgraph(subset, dataset._data.edge_index, relabel_nodes=True)
+        d, e = subgraph(subset, data.edge_index, relabel_nodes=True)
             
-        x_sub = dataset._data.x[subset]
+        x_sub = data.x[subset]
         x_pred = gnn_preds[subset]
 
         gnn.eval()
         exp_graph = Data(
             x=x_sub, 
             edge_index=d, 
-            y=dataset._data.y[subset],
+            y=data.y[subset],
             org_nid=subset,
-            raw_text=[dataset._data.raw_text[n_idx.item()] for n_idx in subset]
+            raw_text=[data.raw_text[n_idx.item()] for n_idx in subset]
         )
         exp_graphs.append(exp_graph)
 
@@ -446,6 +447,7 @@ def eval_gnnexplainer_explanations(
     num_explainer_epochs = 200,
     save_to = None
 ):
+    data = dataset._data.to(device)
 
     gnn = gnn.to(device)
     gnn.device = device
@@ -462,7 +464,7 @@ def eval_gnnexplainer_explanations(
         ),
     )
 
-    G = to_networkx(dataset._data, to_undirected=True)
+    G = to_networkx(data, to_undirected=True)
 
     all_fidelities = []
     all_sizes = []
@@ -472,8 +474,8 @@ def eval_gnnexplainer_explanations(
         all_neighbors = set(graph.nodes)
 
         explanation = gnn_explainer(
-            x=dataset._data.x, 
-            edge_index=dataset._data.edge_index,
+            x=data.x, 
+            edge_index=data.edge_index,
             index=i,
             output_embeds=False
         )
@@ -493,18 +495,18 @@ def eval_gnnexplainer_explanations(
         #     selected_nodes = selected_nodes[:max_expln_subgraph_size]
 
         subset = torch.tensor(selected_nodes, dtype=torch.long)
-        d, e = subgraph(subset, dataset._data.edge_index, relabel_nodes=True)
+        d, e = subgraph(subset, data.edge_index, relabel_nodes=True)
             
-        x_sub = dataset._data.x[subset]
+        x_sub = data.x[subset]
         x_pred = gnn_preds[subset]
 
         gnn.eval()
         exp_graph = Data(
             x=x_sub, 
             edge_index=d, 
-            y=dataset._data.y[subset],
+            y=data.y[subset],
             org_nid=subset,
-            raw_text=[dataset._data.raw_text[n_idx.item()] for n_idx in subset]
+            raw_text=[data.raw_text[n_idx.item()] for n_idx in subset]
         )
         exp_graphs.append(exp_graph)
 
@@ -535,7 +537,8 @@ def eval_tage_explanations(
     top_k=100
 ):
 
-    # ipdb.set_trace()
+    data = dataset._data.to(device)
+
     gnn = gnn.to(device)
     gnn.device = device
     gnn_preds = gnn_preds.to(device)
@@ -582,7 +585,7 @@ def eval_tage_explanations(
     # spa, spa_std = x_collector.sparsity
 
     # print(f'Fidelity: {fid:.4f} ±{fid_std:.4f}\nSparsity: {spa:.4f} ±{spa_std:.4f}')
-    all_nodes = dataset._data.edge_index.unique()
+    all_nodes = data.edge_index.unique()
     all_fidelities = []
     all_sizes = []
     for i in range(num_eval_samples):
@@ -590,7 +593,7 @@ def eval_tage_explanations(
             continue
 
         masked_data, subset, masked_subset, ego_mapping = enc_explainer(
-            dataset._data, 
+            data, 
             mlp_explainer, 
             node_idx=i, 
             top_k=top_k
@@ -622,9 +625,11 @@ def eval_pgexplainer_explanations(
     num_explainer_epochs = 200,
 ):
 
+    data = dataset._data.to(device)
+
     gnn = gnn.to(device)
     gnn.device = device
-    data = dataset._data.to(device)
+    data = data.to(device)
     gnn_preds = gnn_preds.to(device)
     explainer = Explainer(
         model=gnn,
@@ -718,6 +723,8 @@ def eval_gnn_explanations(
     device="cpu",
 ):
 
+    data = dataset._data.to(device)
+
     all_sizes = []
     all_fidelities = []
 
@@ -725,7 +732,7 @@ def eval_gnn_explanations(
         trial_size = []
         trial_fidelity = []
 
-        G = to_networkx(dataset._data, to_undirected=True)
+        G = to_networkx(data, to_undirected=True)
     
         for i in range(num_eval_samples):
             graph = nx.ego_graph(G, i, radius=2)
@@ -750,9 +757,9 @@ def eval_gnn_explanations(
             trial_size.append(len(selected_nodes))
 
             subset = torch.tensor(selected_nodes, dtype=torch.long)
-            d, e = subgraph(subset, dataset._data.edge_index, relabel_nodes=True)
+            d, e = subgraph(subset, data.edge_index, relabel_nodes=True)
 
-            x_sub = dataset._data.x[subset]
+            x_sub = data.x[subset]
             x_pred = gnn_preds[subset]
             gnn.eval()
             with torch.no_grad():
