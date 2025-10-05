@@ -1,11 +1,11 @@
 #!/bin/bash
 
-python main.py -cff "./config/amazon_products.yaml" -dss 1000 -mnen 1 -m logic -ub -nt 5 \
+python main.py -cff "./config/liar.yaml" -mnen 2 -m logic -nt 5 -gne 5 \
 -wno -lm "meta-llama/Meta-Llama-3.1-8B-Instruct" \
 --seed 4978 \
--pgp ./pretrained/gcn/gcn.pth \
--pdp ./output/gcn/data.pth \
--pcrw 0.25 \
+-pcrw 0.5 \
 -pcew 0.5 \
 -pmiw 0.5 \
 -pwb
+# -pgp ./pretrained/gcn/gcn.pth \
+# -pdp ./output/gcn/data.pth \

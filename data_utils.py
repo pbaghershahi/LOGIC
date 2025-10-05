@@ -258,6 +258,7 @@ class AmazonProductDataset(NodeToGraphDataset):
         self.num_samples = data.x.size(0)
         self.num_classes = len(data.label)
         self.num_hops = num_hops
+        self.name_ = "amazon_products"
 
 
     def __len__(self):
@@ -278,7 +279,7 @@ class AmazonProductDataset(NodeToGraphDataset):
         data = Data(
             x = self._data.x[subset],
             y = self._data.y[subset],
-            raw_text = [self._data.raw_text[i] for i in subset],
+            raw_text = [self._data.raw_text[i] for i in subset] if hasattr(self._data, "raw_text") else [],
             edge_index = subgraph_edge_index,
             original_indices = subset,
             ego_indices = mapping
@@ -317,6 +318,7 @@ class CoraDataset(NodeToGraphDataset):
         self.num_samples = data.x.size(0)
         self.num_classes = len(data.label_names)
         self.num_hops = num_hops
+        self.name_ = "cora"
 
 
     def __len__(self):
@@ -337,7 +339,7 @@ class CoraDataset(NodeToGraphDataset):
         data = Data(
             x = self._data.x[subset],
             y = self._data.y[subset],
-            raw_text = [self._data.raw_text[i] for i in subset],
+            raw_text = [self._data.raw_text[i] for i in subset] if hasattr(self._data, "raw_text") else [],
             edge_index = subgraph_edge_index,
             original_indices = subset,
             ego_indices = mapping
@@ -385,6 +387,7 @@ class WikicsDataset(NodeToGraphDataset):
         self.num_samples = data.x.size(0)
         self.num_classes = len(data.label_names)
         self.num_hops = num_hops
+        self.name_ = "wikics"
 
 
     def __len__(self):
@@ -405,7 +408,7 @@ class WikicsDataset(NodeToGraphDataset):
         data = Data(
             x = self._data.x[subset],
             y = self._data.y[subset],
-            raw_text = [self._data.raw_text[i] for i in subset],
+            raw_text = [self._data.raw_text[i] for i in subset] if hasattr(self._data, "raw_text") else [],
             edge_index = subgraph_edge_index,
             original_indices = subset,
             ego_indices = mapping
@@ -429,6 +432,7 @@ class LiarDataset(NodeToGraphDataset):
     ):
         super(NodeToGraphDataset, self).__init__(**kwargs)
         data = torch.load(path)
+        data.label_names = ["persons_and_places"] + data.label_names
         # data, indices = self.get_data(data, sample_size, random_sampling) 
         indices = None
 
@@ -440,11 +444,13 @@ class LiarDataset(NodeToGraphDataset):
     
         data.label_info = dict(zip([str(i) for i in range(len(data.label_names))], data.label_names))
     
+        data.raw_text = data.words
         self._data = data
         self.n_feats = data.x.size(1)
         self.num_samples = data.x.size(0)
         self.num_classes = len(data.label_names)
         self.num_hops = num_hops
+        self.name_ = "liar"
 
 
     def __len__(self):
@@ -465,7 +471,7 @@ class LiarDataset(NodeToGraphDataset):
         data = Data(
             x = self._data.x[subset],
             y = self._data.y[subset],
-            raw_text = [self._data.raw_text[i] for i in subset],
+            raw_text = [self._data.raw_text[i] for i in subset] if hasattr(self._data, "raw_text") else [],
             edge_index = subgraph_edge_index,
             original_indices = subset,
             ego_indices = mapping

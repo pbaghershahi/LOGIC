@@ -422,7 +422,7 @@ def eval_llm_explanations(
             edge_index=d, 
             y=data.y[subset],
             org_nid=subset,
-            raw_text=[data.raw_text[n_idx.item()] for n_idx in subset]
+            raw_text=[data.raw_text[n_idx.item()] for n_idx in subset] if len(data.raw_text) != 0 else []
         )
         exp_graphs.append(exp_graph)
 
@@ -506,7 +506,7 @@ def eval_gnnexplainer_explanations(
             edge_index=d, 
             y=data.y[subset],
             org_nid=subset,
-            raw_text=[data.raw_text[n_idx.item()] for n_idx in subset]
+            raw_text=[data.raw_text[n_idx.item()] for n_idx in subset] if len(data.raw_text) != 0 else []
         )
         exp_graphs.append(exp_graph)
 

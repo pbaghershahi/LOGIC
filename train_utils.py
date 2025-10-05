@@ -157,7 +157,10 @@ def pretrain_projector(
         else:
             prompt_content = dataset._data.raw_text[i]
         
-        tokenized_prompt = tokenizer(prompt_content, return_tensors="pt", add_special_tokens=False)
+        if dataset.name_ == "wikics":
+            tokenized_prompt = tokenizer(prompt_content, is_split_into_words=True, return_tensors="pt", add_special_tokens=False)
+        else:
+            tokenized_prompt = tokenizer(prompt_content, return_tensors="pt", add_special_tokens=False)
 
         prompt_embeds = embed_func(
             tokenized_prompt["input_ids"].to(torch.long).to(gnn_embeds.device)
