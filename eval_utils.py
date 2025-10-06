@@ -185,9 +185,8 @@ def build_inputs_embeds_vanilla_eos(
     
         full_embeds.append(eos_embed)
 
-    ipdb.set_trace()
-    desciprtion_req = f"""\n\t3. Justify your reasoning by **one sentence** to **generally** clarify what makes the above {node_type}s marked as supporting or unsupporting \
-for explanation of the classification into '{dataset._data.label_info[str(gnn_preds[target_node].item())]}. Give this reasoning after marking all neighbors at the end by Reasoning:<YOURE_REASONING_GOES_HERE>'. \n""" if descriptive_prompt else "\n"
+    desciprtion_req = f"""\n\t3. For better understanding, justify your reasoning by **one sentence** to **generally** clarify what are the common patterns among the supporting {node_type}s \
+to explain the classification into '{dataset._data.label_info[str(gnn_preds[target_node].item())]}. Give this reasoning after marking all neighbors at the end by Reasoning:<YOURE_REASONING_GOES_HERE>'. \n""" if descriptive_prompt else "\n"
 
     instructions_text = f"""
         Instructions:
