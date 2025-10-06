@@ -1,11 +1,10 @@
 #!/bin/bash
 
-python main.py -cff "./config/liar.yaml" -mnen 2 -m logic -nt 5 -gne 5 \
+python main.py -cff "./config/wikics.yaml" -dss 1000 -mnen 5 -m pgexplainer -nt 5 -gne 5 \
 -wno -lm "meta-llama/Meta-Llama-3.1-8B-Instruct" \
---seed 4978 \
 -pcrw 0.5 \
 -pcew 0.5 \
 -pmiw 0.5 \
 -pwb
-# -pgp ./pretrained/gcn/gcn.pth \
+# -pgp /workspace/LOGIC/pretrained/liar-meta-llama/Meta-Llama-3.1-8B-Instruct-2025-10-06-00-29-39/gcn.pth \
 # -pdp ./output/gcn/data.pth \

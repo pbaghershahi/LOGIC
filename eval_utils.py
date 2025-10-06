@@ -494,11 +494,11 @@ def eval_gnnexplainer_explanations(
         # if len(selected_nodes) > max_expln_subgraph_size:
         #     selected_nodes = selected_nodes[:max_expln_subgraph_size]
 
-        subset = torch.tensor(selected_nodes, dtype=torch.long)
+        subset = torch.tensor(selected_nodes, dtype=torch.long, device=data.x.device)
         d, e = subgraph(subset, data.edge_index, relabel_nodes=True)
             
         x_sub = data.x[subset]
-        x_pred = gnn_preds[subset]
+        x_pred = gnn_preds.to(data.x.device)[subset]
 
         gnn.eval()
         exp_graph = Data(
@@ -633,7 +633,7 @@ def eval_pgexplainer_explanations(
     gnn_preds = gnn_preds.to(device)
     explainer = Explainer(
         model=gnn,
-        algorithm=PGExplainer(epochs=num_explainer_epochs, lr=0.003),
+        algorithm=PGExplainer(epochs=num_explainer_epochs, lr=0.003).to(device),
         explanation_type=ExplanationType.phenomenon,
         edge_mask_type=MaskType.object,
         model_config=ModelConfig(
@@ -642,9 +642,12 @@ def eval_pgexplainer_explanations(
             return_type='log_probs',
         )
     )
+
     for epoch in range(num_explainer_epochs):
         print(f"Traing Explainer -- Epoch: {epoch}/{num_explainer_epochs}")
-        for idx in dataset.train_idxs:
+        for k, idx in enumerate(dataset.train_idxs):
+            if k > 0:
+                break
             loss = explainer.algorithm.train(
                 epoch=epoch,
                 model=gnn,
@@ -694,12 +697,12 @@ def eval_pgexplainer_explanations(
         edge_index_topk = edge_index_filtered[:, top_indices]
         nodes_in_subgraph = torch.unique(edge_index_topk)
         subset_expl = [i] + [n.item() for n in nodes_in_subgraph if n.item() != i]
-        subset = torch.tensor(subset_expl, dtype=torch.long)
+        subset = torch.tensor(subset_expl, dtype=torch.long, device=data.x.device)
         d, e = subgraph(subset, data.edge_index, relabel_nodes=True)
         all_sizes.append(len(subset_expl))
 
         x_sub = data.x[subset]
-        x_pred = gnn_preds[subset]
+        x_pred = gnn_preds.to(data.x.device)[subset]
 
         gnn.eval()
         with torch.no_grad():

@@ -558,8 +558,13 @@ class TAGExplainer(nn.Module):
 					# subgraph, subset = self.get_subgraph(node_idx=node_idx, data=train_ds)
 
 					subset, edge_index, mapping, edge_mask = utils.k_hop_subgraph(node_idx.item(), 2, train_ds.edge_index, relabel_nodes=True)
-					subgraph = Data(x=train_ds.x[subset], edge_index=edge_index, device=self.device)
 
+					subset = subset.to(self.device)
+					mapping = mapping.to(self.device)
+					edge_index = edge_index.to(self.device)
+					edge_mask = edge_mask.to(self.device)
+
+					subgraph = Data(x=train_ds.x.to(self.device)[subset], edge_index=edge_index, device=self.device)
 					pruned_embed, mask, log = self.explain(
 						subgraph, 
 						all_embeds[subset].to(self.device), 
@@ -633,7 +638,6 @@ class TAGExplainer(nn.Module):
 		grads = mlp_explainer(embed, mode='explain') if cond_vec is None else cond_vec
 		probs = probs.squeeze()
 
-		# ipdb.set_trace()
 		if self.explain_graph:
 			subgraph = None
 			target_class = torch.argmax(probs) if data.y is None else max(data.y.long(), 0) # sometimes labels are +1/-1
@@ -649,7 +653,7 @@ class TAGExplainer(nn.Module):
 			# subgraph, subset = self.get_subgraph(node_idx=node_idx, data=data)
 
 			# subset, edge_index, mapping, edge_mask = utils.k_hop_subgraph(node_idx, 2, data.edge_index, relabel_nodes=True)
-			subset, edge_index, mapping, edge_mask = custom_k_hop_subgraph(node_idx, 2, data.edge_index)
+			subset, edge_index, mapping, edge_mask = custom_k_hop_subgraph(torch.as_tensor(node_idx).to(probs.device), 2, data.edge_index)
 
 			# try:
 			# 	flag1 = (subset == subset1).all()

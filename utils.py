@@ -111,8 +111,8 @@ def load_model(cmodel, pmodel=None, read_checkpoint=True, pretrained_path=None):
 
 
 def custom_k_hop_subgraph(node_idx, num_hops, edge_index):
-    if isinstance(node_idx, int) or (isinstance(node_idx, torch.Tensor) and s.dim() == 0):
-        node_idx = torch.tensor([node_idx])
+    if isinstance(node_idx, int) or (isinstance(node_idx, torch.Tensor) and node_idx.dim() == 0):
+        node_idx = torch.tensor([node_idx]).to(node_idx.device)
 
     search_idx = node_idx
     while num_hops > 0:

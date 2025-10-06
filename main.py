@@ -281,7 +281,7 @@ def main(args):
         )
 
         proj_embeds = None
-        
+        # ipdb.set_trace()
         if args.method == "logic":
 
             tokenizer = AutoTokenizer.from_pretrained(args.llm_model)
@@ -442,6 +442,7 @@ def main(args):
                 dataset = dataset, 
                 gnn = gnn,
                 gnn_preds = gnn_preds,
+                device = device,
                 num_eval_samples = args.max_num_eval_nodes,
                 save_to = os.path.join(output_dir, "GNNExplainer_explanations.pt"),
             )
@@ -452,6 +453,7 @@ def main(args):
                 dataset = dataset, 
                 gnn = gnn,
                 gnn_preds = gnn_preds,
+                device = device,
                 num_eval_samples = args.max_num_eval_nodes,
                 num_explainer_epochs = 30
             )
@@ -466,6 +468,7 @@ def main(args):
                 gnn = gnn,
                 gnn_preds = gnn_preds,
                 exp_config = exp_config,
+                device = device,
                 num_eval_samples = args.max_num_eval_nodes,
                 num_explainer_epochs = 200,
             )
