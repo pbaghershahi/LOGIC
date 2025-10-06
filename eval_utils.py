@@ -67,6 +67,55 @@ def test(model, dataset, validation = True):
     return test_loss, test_acc, test_f1.item()
 
 
+def get_characterization(dataset, target_node, target_pred):
+    if dataset.name_ == "amazon_products":
+        system_message = "You are an expert research assistant skilled in reading Amazon product reviews and descriptions and analyzing co-purchase network, i.e. products bought together. Your goal is to assess whether the classification of a target product is supported by its co-purchase neighborhood."
+        
+        user_intro = f"""You are analyzing Amazon product review and its co-purchase neighborhood to understand why it has been classified under a specific category. Your task is to evaluate the embeddings of each neighboring product and determine whether it supports the classification of the target product. 
+    The categories to distinguish from are {", ".join(w for w in dataset._data.label_names)} 
+    Target Product ID: {target_node}
+    Predicted Category: {target_pred}"""
+
+        node_type = "Product"
+
+    elif dataset.name_ == "liar":
+        system_message = "You are an expert research assistant skilled in reading and analyzing political statements. Your goal is to assess whether the classification of a target statement is supported by its context."
+        
+        user_intro = f"""You are analyzing a statement and its context to understand why it has been classified under a specific category. Your task is to evaluate the embeddings of each contextual element and determine whether it supports the classification of the target statement.
+    Target Statement ID: {target_node}
+    Predicted Category: {target_pred} 
+    """
+
+        node_type = "Statement"
+
+    elif dataset.name_ == "cora":
+        system_message = "You are an expert research assistant skilled in reading scientific papers and analyzing citation networks. Your goal is to assess whether the classification of a target paper is supported by its citation neighborhood."
+        
+        user_intro = f"""You are analyzing a scientific paper and its citation neighborhood to understand why it has been classified under a specific category. Your task is to evaluate the embeddings of each neighboring paper and determine whether it supports the classification of the target paper.
+    The categories to distinguish from are {", ".join(w for w in dataset._data.label_names)} 
+    Target Paper ID: {target_node}
+    Predicted Category: {target_pred} 
+    Target Paper Embedding:
+    """
+        node_type = "Article"
+
+    elif dataset.name_ == "wikics":
+        system_message = "You are an expert research assistant skilled in reading scientific article and analyzing citation networks. Your goal is to assess whether the classification of a target article is supported by its citation neighborhood."
+        
+        user_intro = f"""You are analyzing a scientific article and its citation neighborhood to understand why it has been classified under a specific category. Your task is to evaluate the embeddings of each neighboring article and determine whether it supports the classification of the target paper.
+    The categories to distinguish from are {", ".join(w for w in dataset._data.label_names)} 
+    Target Article ID: {target_node}
+    Predicted Category: {target_pred} 
+    """
+        node_type = "Article"
+    
+    else:
+        raise Exception("The dataset isn't supported!")
+
+
+    return system_message, user_intro, node_type
+
+
 
 def build_inputs_embeds_vanilla_eos(
     embed_func,
@@ -84,13 +133,7 @@ def build_inputs_embeds_vanilla_eos(
     device = gnn_embeds.device
     full_embeds = []
 
-    system_message = "You are an expert research assistant skilled in reading Amazon product reviews and descriptions and analyzing co-purchase network, i.e. products bought together. Your goal is to assess whether the classification of a target product is supported by its co-purchase neighborhood."
-    
-    user_intro = f"""You are analyzing Amazon product review and its co-purchase neighborhood to understand why it has been classified under a specific category. Your task is to evaluate the embeddings of each neighboring product and determine whether it supports the classification of the target product. 
-The categories to distinguish from are {", ".join(w for w in dataset._data.label_names)} 
-Target Product ID: {target_node}
-Predicted Category: {dataset._data.label_info[str(gnn_preds[target_node].item())]} 
-    """
+    system_message, user_intro, node_type = get_characterization(dataset, target_node, dataset._data.label_info[str(gnn_preds[target_node].item())])
 
     if with_chat_template:
         prompt_start = tokenizer.apply_chat_template([
@@ -107,7 +150,7 @@ Predicted Category: {dataset._data.label_info[str(gnn_preds[target_node].item())
     eos_embed = embed_func(torch.tensor([tokenizer.eos_token_id], device=device))
     full_embeds.append(eos_embed)
 
-    target_text = "\n\nTarget Product Embedding Representation:\n<<BEGIN TARGET KEYWORDS>>"
+    target_text = f"\n\nTarget {node_type} Embedding Representation:\n<<BEGIN TARGET KEYWORDS>>"
     tokens_target_intro = tokenizer(target_text, return_tensors="pt", add_special_tokens=False).to(device)
     embeds_target_intro = embed_func(tokens_target_intro.input_ids).squeeze(0)
     full_embeds.append(embeds_target_intro)
@@ -121,13 +164,13 @@ Predicted Category: {dataset._data.label_info[str(gnn_preds[target_node].item())
     
     full_embeds.append(eos_embed)
 
-    neighbor_intro = "\nNeighboring Products in the Co-purchase Network:\nEach product below is described by keywords.\n"
+    neighbor_intro = f"\nNeighboring {node_type}s in the Network:\nEach {node_type} below is described by keywords.\n"
     tokens_neighbor_intro = tokenizer(neighbor_intro, return_tensors="pt", add_special_tokens=False).to(device)
     embeds_neighbor_intro = embed_func(tokens_neighbor_intro.input_ids).squeeze(0)
     full_embeds.append(embeds_neighbor_intro)
     
     for neighbor in selected_neighbors:
-        neighbor_text = f"\n- Product {neighbor}:\n<<BEGIN KEYWORDS>>"
+        neighbor_text = f"\n- {node_type} {neighbor}:\n<<BEGIN KEYWORDS>>"
         tokens_neighbor = tokenizer(neighbor_text, return_tensors="pt", add_special_tokens=False).to(device)
         embeds_neighbor = embed_func(tokens_neighbor.input_ids).squeeze(0)
         full_embeds.append(embeds_neighbor)
@@ -143,19 +186,19 @@ Predicted Category: {dataset._data.label_info[str(gnn_preds[target_node].item())
 
     instructions_text = f"""
         Instructions:
-        You are given a target product and a list of neighboring products, each described by keywords.
+        You are given a target {node_type} and a list of neighboring {node_type}s, each described by keywords.
         
-        For each neighboring product:
+        For each neighboring {node_type}:
         1. Write **one sentence** summarizing the main topics or ideas captured in its keywords.
-        2. Clearly state whether this product supports the classification of the Target Product into category '{dataset._data.label_info[str(gnn_preds[target_node].item())]}'.
+        2. Clearly state whether this {node_type} supports the classification of the Target {node_type} into category '{dataset._data.label_info[str(gnn_preds[target_node].item())]}'.
         
         Use the following format for each neighbor:
         
-        Product <ID>:
-        Summary: <One sentence summary of the product's keywords>.
-        Support: YES or NO — Does this product support the classification into '{dataset._data.label_info[str(gnn_preds[target_node].item())]}'?
+        {node_type} <ID>:
+        Summary: <One sentence summary of the {node_type}'s keywords>.
+        Support: YES or NO — Does this {node_type} support the classification into '{dataset._data.label_info[str(gnn_preds[target_node].item())]}'?
         
-        Base your reasoning only on the keywords and proximity to the target product.
+        Base your reasoning only on the keywords and proximity to the target {node_type}.
         
         Start your analysis below:
     """
