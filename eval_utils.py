@@ -125,7 +125,8 @@ def build_inputs_embeds_vanilla_eos(
     target_node,
     selected_neighbors,
     dataset,
-    with_chat_template
+    with_chat_template,
+    descriptive_prompt,
 ):
     """
     Build input embeddings that alternate between text and soft GNN embeddings.
@@ -184,14 +185,17 @@ def build_inputs_embeds_vanilla_eos(
     
         full_embeds.append(eos_embed)
 
+    ipdb.set_trace()
+    desciprtion_req = f"""\n\t3. Justify your reasoning by **one sentence** to **generally** clarify what makes the above {node_type}s marked as supporting or unsupporting \
+for explanation of the classification into '{dataset._data.label_info[str(gnn_preds[target_node].item())]}. Give this reasoning after marking all neighbors at the end by Reasoning:<YOURE_REASONING_GOES_HERE>'. \n""" if descriptive_prompt else "\n"
+
     instructions_text = f"""
         Instructions:
         You are given a target {node_type} and a list of neighboring {node_type}s, each described by keywords.
         
         For each neighboring {node_type}:
         1. Write **one sentence** summarizing the main topics or ideas captured in its keywords.
-        2. Clearly state whether this {node_type} supports the classification of the Target {node_type} into category '{dataset._data.label_info[str(gnn_preds[target_node].item())]}'.
-        
+        2. Clearly state whether this {node_type} supports the classification of the Target {node_type} into category '{dataset._data.label_info[str(gnn_preds[target_node].item())]}'.{desciprtion_req}
         Use the following format for each neighbor:
         
         {node_type} <ID>:
@@ -284,7 +288,8 @@ def generate_exp_by_llm(
     gnn_preds = None,
     save_to = None,
     save_every = 10,
-    with_chat_template = True
+    with_chat_template = True,
+    descriptive_prompt = False
 ):
 
     G = to_networkx(dataset._data, to_undirected=True)
@@ -308,7 +313,7 @@ def generate_exp_by_llm(
                 
                 full_embeds = build_inputs_embeds_vanilla_eos(
                     embed_func, tokenizer, gnn_embeds, gnn_preds,
-                    node_idx, neighbor_batch, dataset, with_chat_template
+                    node_idx, neighbor_batch, dataset, with_chat_template, descriptive_prompt
                 )
 
                 attention_mask = torch.ones(full_embeds.shape[:2], dtype=torch.long, device=full_embeds.device)

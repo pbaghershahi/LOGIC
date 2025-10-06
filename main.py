@@ -361,7 +361,8 @@ def main(args):
                 generate_by = "embedding",
                 save_to = os.path.join(output_dir, "LOGIC_explanations.pt"),
                 save_every = 20,
-                with_chat_template = with_chat_template
+                with_chat_template = with_chat_template,
+                descriptive_prompt = args.add_descriptive_prompt
             )
 
             eval_llm_explanations(
@@ -538,5 +539,6 @@ if __name__ == "__main__":
     parser.add_argument('-nt', '--num-tokens', type=int)
     parser.add_argument("-tts", "--train-test-split", nargs='*', type=float, help="[train_percentage, test_percentage]")
     parser.add_argument("-nm", "--normal-mode", type=str, help="Config file to save to")
+    parser.add_argument('-adp', '--add-descriptive-prompt', action='store_true')
     args = parser.parse_args()
     main(args)
