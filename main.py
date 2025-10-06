@@ -381,7 +381,7 @@ def main(args):
                 model=args.llm_model,
                 model_kwargs={"torch_dtype": torch.bfloat16},
                 device_map="auto",
-                token = key
+                # token = key
             )
 
             llm_type = args.llm_model.split("/")[0]
