@@ -50,6 +50,30 @@ HfFolder.save_token(hugging_face_token)
 
 def main(args):
 
+    if args.config_from_file:
+
+        flag_to_dest_map = {}
+        for action in parser._actions:
+            for option_string in action.option_strings:
+                flag_to_dest_map[option_string] = action.dest
+
+        input_dests = set()
+        for arg in sys.argv[1:]:
+            if arg in flag_to_dest_map:
+                input_dests.add(flag_to_dest_map[arg])
+
+        with open(args.config_from_file, 'r') as infile:
+            all_args = vars(args)
+            file_args = yaml.safe_load(infile) or {}
+
+        merged_args = {
+            key: file_args[key] if (key in file_args and key not in input_dests) else value
+            for key, value in all_args.items()
+        }
+        
+        merged_args.update({k: v for k, v in file_args.items() if k not in merged_args})
+        args = argparse.Namespace(**merged_args)
+
     data_root_dir = os.path.join(ROOT_PATH, "data")
     exec_name = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
 
@@ -60,7 +84,7 @@ def main(args):
         if args.log_dir is None:
             log_dir = Path(ROOT_PATH) / "log/"
         else:
-            log_dir = Path(args.log_dir) / "LOGIC/log"
+            log_dir = Path(args.log_dir) / "GSPELL/log"
 
         general_log_dir = Path(log_dir) / "general"
         evaluations_log_dir = Path(log_dir) / "evaluation"
@@ -86,18 +110,6 @@ def main(args):
         )
         global_logger.info(f"Logging to: {log_file_paths}")
 
-    if args.config_from_file != "":
-        global_logger.info(f"Reading config from: {args.config_from_file}")
-        with open(args.config_from_file, 'r') as infile:
-            all_args = vars(args)
-            input_args = []
-            for key, value in all_args.items():
-                if value is not None:
-                    input_args.append(key)
-            file_args = yaml.safe_load(infile)
-            args = {key:file_args[key] if (key in file_args and key not in input_args) else value for key, value in all_args.items()}
-            args = argparse.Namespace(**args)
-    
     arg_seeds = np.random.randint(1000, 5000, (args.total_iters,)) if len(args.seed) == 0 else args.seed
     total_iters = len(arg_seeds)
     global_logger.info(args)
@@ -282,7 +294,7 @@ def main(args):
 
         proj_embeds = None
         # ipdb.set_trace()
-        if args.method == "logic":
+        if args.method == "gspell":
 
             tokenizer = AutoTokenizer.from_pretrained(args.llm_model)
             llm = AutoModelForCausalLM.from_pretrained(
@@ -309,7 +321,7 @@ def main(args):
                 gnn_h_dim = args.gnn_h_dim, 
                 num_tokens = args.num_tokens, 
                 llm_h_dim = llm.config.hidden_size,
-                gnn_out_dim = dataset.num_classes if args.proj_with_backward else None
+                gnn_out_dim = dataset.num_classes if args.projector_with_backward else None
             )
             optimizer_config = dict(
                 lr = args.projector_lr,
@@ -359,7 +371,7 @@ def main(args):
                 eval_config = eval_config,
                 embed_func = embed_func,
                 generate_by = "embedding",
-                save_to = os.path.join(output_dir, "LOGIC_explanations.pt"),
+                save_to = os.path.join(output_dir, "GSPELL_explanations.pt"),
                 save_every = 20,
                 with_chat_template = with_chat_template,
                 descriptive_prompt = args.add_descriptive_prompt
@@ -490,55 +502,55 @@ if __name__ == "__main__":
         "microsoft/Phi-3-mini-4k-instruct"
         )
     )
-    parser.add_argument('-dns', '--download-nltk-stopwords', action='store_true')
-    parser.add_argument('--dataset', type=str)
-    parser.add_argument("--pretrain", action='store_true')
-    parser.add_argument("-ub", "--use-bow", action='store_true')
-    parser.add_argument("-gdnw", "--gnn-dataloader-num-workers", type=int, help="Number of graph dataloader workers")
-    parser.add_argument("-dss", "--dataset-sample-size", type=int, help="Graph dataset sample size")
-    parser.add_argument("-drs", "--dataset-random-sampling", action="store_true")
-    parser.add_argument("-pgp", "--pretrained-gnn-path", nargs='*', default=[], type=str, help="Paths to the pretrained model")
-    parser.add_argument("-pdp", "--processed-data-path", nargs='*', default=[], type=str, help="Paths to the processed data")
-    parser.add_argument("-ppp", "--pretrained-projector-path", nargs='*', default=[], type=str, help="Paths to the pretrained model")
-    parser.add_argument('-gwlp', '--gnn-with-last-dropout', action='store_true')
-    parser.add_argument("-gtm", "--gnn-task-mode", type=str)
-    parser.add_argument("-gwd", "--gnn-weight-decay", type=float, help="Rate of regularization")
-    parser.add_argument("-gt", "--gnn-type", type=str, help="Type of base GNN: [gcn, gat, gin, sage]")
-    parser.add_argument("-gdt", "--gnn-decoder-type", type=str, help="GNN decoder: [linear, gnn]")
-    parser.add_argument("-gnh", "--gnn-num-hid-layers", type=int, help="Number of layers of the base GNN")
-    parser.add_argument("-gne", "--gnn-num-epochs", type=int, help="Number of epochs for pretraining")
-    parser.add_argument("-ges", "--gnn-eval-step", type=int, help="Evaluation step for pretrained model")
-    parser.add_argument("-ghd", "--gnn-h-dim", type=int, help="Hidden dim of the GNN")
-    parser.add_argument("-gl", "--gnn-lr", type=float, help="Learning rate for pretraining the gnn")
-    parser.add_argument("-gss", "--gnn-step-size", type=int, help="Learning rate step size for pretraining the gnn")
-    parser.add_argument("-gg", "--gnn-gamma", type=float, help="Learning rate gamma for pretraining the gnn")
-    parser.add_argument("-gbs", "--gnn-batch-size", type=int, help="Batch size for pretraining")
-    parser.add_argument("-gn", "--gnn-dropout", type=float, help="Dropout for GNN")
-    parser.add_argument("-pl", "--projector-lr", type=float, help="Learning rate for pretraining the projector")
-    parser.add_argument("-pss", "--projector-step-size", type=int, help="Learning rate step size for pretraining the projector")
-    parser.add_argument("-pwd", "--projector-weight-decay", type=float, help="Rate of regularization")
-    parser.add_argument("-pg", "--projector-gamma", type=float, help="Learning rate gamma for pretraining the projector")
-    parser.add_argument("-pne", "--projector-num-epochs", type=int, help="Number of epochs for pretraining the projector")
-    parser.add_argument("-ct", "--contrastive-temperature", type=float, help="contrastive learning temperature")
-    parser.add_argument("-pcrw", "--projector-contrastive-w", type=float, help="contrastive loss weights")
-    parser.add_argument("-pcew", "--projector-context-w", type=float, help="context loss weights")
-    parser.add_argument("-pmiw", "--projector-mutualinfo-w", type=float, help="mutual information loss weights")
-    parser.add_argument("-pwb", "--proj-with-backward", action='store_true')
-    parser.add_argument('-nv', '--not-verbose', action='store_true')
-    parser.add_argument('-wno', '--write-new-output', action='store_true')
-    parser.add_argument("-tt", "--total-iters", type=int, help="Total number of trials with random initialization of datasets")
-    parser.add_argument("--seed", nargs='*', type=int, default=[], help="Seed for random")
-    parser.add_argument("-cff", "--config-from-file", type=str, default="", help="Config file to read from")
-    parser.add_argument('-ld', '--log-dir', default=None, type=str)
-    parser.add_argument('-lbs', '--llm-batch-size', type=int)
-    parser.add_argument('-mnen', '--max-num-eval-nodes', type=int)
-    parser.add_argument('-mnfw', '--max-num-frequent-words', type=int)
-    parser.add_argument('-nmh', '--neighborhood-max-hops', type=int)
-    parser.add_argument('-lnbs', '--llm-node-batch-size', type=int)
-    parser.add_argument('-sge', '--save-generation-every', type=int)
-    parser.add_argument('-nt', '--num-tokens', type=int)
-    parser.add_argument("-tts", "--train-test-split", nargs='*', type=float, help="[train_percentage, test_percentage]")
-    parser.add_argument("-nm", "--normal-mode", type=str, help="Config file to save to")
-    parser.add_argument('-adp', '--add-descriptive-prompt', action='store_true')
+    parser.add_argument("-dns", "--download_nltk_stopwords", action="store_true")
+    parser.add_argument("--dataset", type=str)
+    parser.add_argument("--pretrain", action="store_true")
+    parser.add_argument("-ub", "--use_bow", action="store_true")
+    parser.add_argument("-gdnw", "--gnn_dataloader_num_workers", type=int, help="Number of graph dataloader workers")
+    parser.add_argument("-dss", "--dataset_sample_size", type=int, help="Graph dataset sample size")
+    parser.add_argument("-drs", "--dataset_random_sampling", action="store_true")
+    parser.add_argument("-pgp", "--pretrained_gnn_path", nargs="*", default=[], type=str, help="Paths to the pretrained model")
+    parser.add_argument("-pdp", "--processed_data_path", nargs="*", default=[], type=str, help="Paths to the processed data")
+    parser.add_argument("-ppp", "--pretrained_projector_path", nargs="*", default=[], type=str, help="Paths to the pretrained model")
+    parser.add_argument("-gwlp", "--gnn_with_last_dropout", action="store_true")
+    parser.add_argument("-gtm", "--gnn_task_mode", type=str)
+    parser.add_argument("-gwd", "--gnn_weight_decay", type=float, help="Rate of regularization")
+    parser.add_argument("-gt", "--gnn_type", type=str, help="Type of base GNN: [gcn, gat, gin, sage]")
+    parser.add_argument("-gdt", "--gnn_decoder_type", type=str, help="GNN decoder: [linear, gnn]")
+    parser.add_argument("-gnh", "--gnn_num_hid_layers", type=int, help="Number of layers of the base GNN")
+    parser.add_argument("-gne", "--gnn_num_epochs", type=int, help="Number of epochs for pretraining")
+    parser.add_argument("-ges", "--gnn_eval_step", type=int, help="Evaluation step for pretrained model")
+    parser.add_argument("-ghd", "--gnn_h_dim", type=int, help="Hidden dim of the GNN")
+    parser.add_argument("-gl", "--gnn_lr", type=float, help="Learning rate for pretraining the gnn")
+    parser.add_argument("-gss", "--gnn_step_size", type=int, help="Learning rate step size for pretraining the gnn")
+    parser.add_argument("-gg", "--gnn_gamma", type=float, help="Learning rate gamma for pretraining the gnn")
+    parser.add_argument("-gbs", "--gnn_batch_size", type=int, help="Batch size for pretraining")
+    parser.add_argument("-gn", "--gnn_dropout", type=float, help="Dropout for GNN")
+    parser.add_argument("-pl", "--projector_lr", type=float, help="Learning rate for pretraining the projector")
+    parser.add_argument("-pss", "--projector_step_size", type=int, help="Learning rate step size for pretraining the projector")
+    parser.add_argument("-pwd", "--projector_weight_decay", type=float, help="Rate of regularization")
+    parser.add_argument("-pg", "--projector_gamma", type=float, help="Learning rate gamma for pretraining the projector")
+    parser.add_argument("-pne", "--projector_num_epochs", type=int, help="Number of epochs for pretraining the projector")
+    parser.add_argument("-ct", "--contrastive_temperature", type=float, help="contrastive learning temperature")
+    parser.add_argument("-pcrw", "--projector_contrastive_w", type=float, help="contrastive loss weights")
+    parser.add_argument("-pcew", "--projector_context_w", type=float, help="context loss weights")
+    parser.add_argument("-pmiw", "--projector_mutualinfo_w", type=float, help="mutual information loss weights")
+    parser.add_argument("-pwb", "--projector_with_backward", action="store_true")
+    parser.add_argument("-nv", "--not_verbose", action="store_true")
+    parser.add_argument("-wno", "--write_new_output", action="store_true")
+    parser.add_argument("-tt", "--total_iters", type=int, help="Total number of trials with random initialization of datasets")
+    parser.add_argument("--seed", nargs="*", type=int, default=[], help="Seed for random")
+    parser.add_argument("-cff", "--config_from_file", type=str, default="", help="Config file to read from")
+    parser.add_argument("-ld", "--log_dir", default=None, type=str)
+    parser.add_argument("-lbs", "--llm_batch_size", type=int)
+    parser.add_argument("-mnen", "--max_num_eval_nodes", type=int)
+    parser.add_argument("-mnfw", "--max_num_frequent_words", type=int)
+    parser.add_argument("-nmh", "--neighborhood_max_hops", type=int)
+    parser.add_argument("-lnbs", "--llm_node_batch_size", type=int)
+    parser.add_argument("-sge", "--save_generation_every", type=int)
+    parser.add_argument("-nt", "--num_tokens", type=int)
+    parser.add_argument("-tts", "--train_test_split", nargs="*", type=float, help="[train_percentage, test_percentage]")
+    parser.add_argument("-nm", "--normal_mode", type=str, help="Config file to save to")
+    parser.add_argument("-adp", "--add_descriptive_prompt", action="store_true")
     args = parser.parse_args()
     main(args)

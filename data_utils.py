@@ -75,7 +75,7 @@ class NodeToGraphDataset(GDataset):
         sampled_idxs = None
         if sample_size > 0:
             if random_sampling:
-                sampled_idxs = torch.perm(dataset.x.size(0))[:sample_size]
+                sampled_idxs = torch.randperm(dataset.x.size(0))[:sample_size]
             else:
                 sampled_idxs = torch.arange(sample_size)
             data = dataset._data.subgraph(sampled_idxs)

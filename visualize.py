@@ -12,7 +12,6 @@ import ipdb
 
 
 def draw_graph_on_axis(ax, data_obj, num_classes, title):
-    """Draws a single explanation graph on a given Matplotlib axis."""
     if not hasattr(data_obj, 'org_nid'):
         data_obj.org_nid = torch.arange(data_obj.num_nodes)
 
@@ -42,7 +41,6 @@ def draw_graph_on_axis(ax, data_obj, num_classes, title):
 
 
 def save_side_by_side_visualization(llm_data_obj, gnn_data_obj, num_classes, output_dir="comparison_visualizations"):
-    """Creates and saves a single figure with two subgraphs side-by-side."""
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -153,12 +151,12 @@ if __name__ == '__main__':
                 gnn_data_obj = gnn_explainer_subgraphs[target_node_id]
                 save_side_by_side_visualization(llm_data_obj, gnn_data_obj, num_classes)
             else:
-                print(f"⚠️ Warning: No GNNExplainer subgraph found for target node {target_node_id}. Skipping visualization.")
+                print(f"Warning: No GNNExplainer subgraph found for target node {target_node_id}. Skipping visualization.")
         
         explanation_output_filename = 'filtered_explanations.json'
         with open(explanation_output_filename, 'w') as f:
             json.dump(filtered_explanations, f, indent=4)
-        print(f"\n✅ Saved all outputs.")
+        print(f"\nSaved all outputs.")
         
     else:
         print("\nNo target nodes with at least one supporting neighbor were found.")

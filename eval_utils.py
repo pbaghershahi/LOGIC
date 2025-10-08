@@ -481,7 +481,7 @@ def eval_llm_explanations(
     all_sizes = torch.as_tensor(all_sizes, dtype=torch.float)
     all_fidelities = torch.stack(all_fidelities)
     
-    eval_logger.info(f"Evalaution on Amazon Products: Test Fidelity: {all_fidelities.sum()/all_fidelities.size(0):.3f} -- Test Size: {all_sizes.mean():.3f}")
+    eval_logger.info(f"Evalaution on {dataset.name_}: Test Fidelity: {all_fidelities.sum()/all_fidelities.size(0):.3f} -- Test Size: {all_sizes.mean():.3f}")
 
 
 
@@ -561,7 +561,7 @@ def eval_gnnexplainer_explanations(
             out, _ = gnn(batch = exp_graph)
             out = out.argmax(dim=-1)
             all_fidelities.append(out[0] == x_pred[0])
-    
+
     all_sizes = torch.as_tensor(all_sizes, dtype=torch.float)
     all_fidelities = torch.stack(all_fidelities)
 
@@ -569,7 +569,7 @@ def eval_gnnexplainer_explanations(
         torch.save(exp_graphs, save_to)
         global_logger.info(f"Outputs saved to: {save_to}")
     
-    eval_logger.info(f"Evalaution on Amazon Products: Test Fidelity: {all_fidelities.sum()/all_fidelities.size(0):.3f} -- Test Size: {all_sizes.mean():.3f}")
+    eval_logger.info(f"Evalaution on {dataset.name_}: Test Fidelity: {all_fidelities.sum()/all_fidelities.size(0):.3f} -- Test Size: {all_sizes.mean():.3f}")
 
 
 
@@ -659,7 +659,7 @@ def eval_tage_explanations(
     all_sizes = torch.as_tensor(all_sizes, dtype=torch.float)
     all_fidelities = torch.stack(all_fidelities)
     
-    eval_logger.info(f"Evalaution on Amazon Products: Test Fidelity: {all_fidelities.sum()/all_fidelities.size(0):.3f} -- Test Size: {all_sizes.mean():.3f}")
+    eval_logger.info(f"Evalaution on {dataset.name_}: Test Fidelity: {all_fidelities.sum()/all_fidelities.size(0):.3f} -- Test Size: {all_sizes.mean():.3f}")
     
 
 
@@ -760,7 +760,7 @@ def eval_pgexplainer_explanations(
     all_sizes = torch.as_tensor(all_sizes, dtype=torch.float)
     all_fidelities = torch.stack(all_fidelities)
 
-    eval_logger.info(f"Evalaution on Amazon Products: Test Fidelity: {all_fidelities.sum()/all_fidelities.size(0):.3f} -- Test Size: {all_sizes.mean():.3f}")
+    eval_logger.info(f"Evalaution on {dataset.name_}: Test Fidelity: {all_fidelities.sum()/all_fidelities.size(0):.3f} -- Test Size: {all_sizes.mean():.3f}")
 
 
     

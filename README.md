@@ -4,9 +4,6 @@ This repository is a reference implementation of the Language guided explainer f
 <br/>
 > From Nodes to Narratives: Explaining Graph Neural Networks with LLMs and Graph Context <br>
 
-### Note
-The current implementatio supports the Amazon Products dataset. We add the codes and config files for other datasets soon. 
-
 ## Requirements
 
 Please use the script `installation.sh` to install the requirements as follows:
@@ -41,11 +38,27 @@ python main.py -cff ./config/amazon_products.yaml -dss 1000 -mnen 200 -m logic -
 ## What is supported
 
 ### Datasets: 
-The current code support the Amazon datasets. We add the codes for other datasets soon. Use `-cff` with:
+The current code support the following datasets. Use `-cff` with:
 
 Dataset | path |
 :--- | :---: |
 Amazon Products | ```./config/amazon_products.yaml``` |
+Cora | ```./config/cora.yaml``` |
+Liar | ```./config/liar.yaml``` |
+WikiCS | ```./config/wikics.yaml``` |
+
+### Methods: 
+The current code support the Amazon datasets. We add the codes for other datasets soon. Use `-m` with:
+
+Dataset | path |
+:--- | :---: |
+GSPELL | `gspell` |
+GNNExplainer | `gnnexplainer` |
+PGExplainer | `pgexplainer` |
+TAGExplainer | `tage` |
+Node | `node` |
+Random | `random` |
+LLM | `llm` |
 
 ### GNN architectures:
 We support four common GNN architectures. Use `-gt`
