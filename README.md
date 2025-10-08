@@ -30,9 +30,10 @@ We provide a sample of the pretrained models and required files for node classif
 You can run the following code directly or copy and paste to file `run.sh` and run that script.
 
 ```
-python main.py -cff ./config/amazon_products.yaml -dss 1000 -mnen 200 -m logic -ub \
--wno -lm "meta-llama/Meta-Llama-3.1-8B-Instruct" --seed 4978 \
--pgp ./pretrained/gcn/gcn.pth -pdp ./output/gcn/data.pth -ppp ./pretrained/gcn/projector.pth
+python main.py -cff "./config/amazon_products.yaml" -m gspell \
+-pdp ./output/gcn/data.pth \
+-pgp ./pretrained/gcn/gcn.pth \
+-ppp ./pretrained/gcn/projector.pth
 ```
 
 ## What is supported
